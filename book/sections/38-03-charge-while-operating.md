@@ -164,6 +164,14 @@ Different vendors use different terms, but the concept is consistent.
 
 - **Dynamic power management** means the system trades off battery charge current against system load to avoid collapsing the input.
 
+Vendors sometimes assign short names to these ideas.
+
+For example, “input voltage dynamic power management” is often shortened to **VINDPM**.
+
+“input current limit” is sometimes shortened to **ILIM**.
+
+Microchip uses the term **voltage proportional current control** (often shortened to **VPCC**) for a related form of input power control. [S7]
+
 Texas Instruments’ dynamic power-path management material is explicitly aimed at this family of problems. [S1]
 
 Microchip’s MCP73871 is marketed with features (often described as input power control) that support load sharing and power-path behavior. [S7]
