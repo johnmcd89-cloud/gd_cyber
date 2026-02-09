@@ -44,6 +44,10 @@ A **global navigation satellite system (GNSS)** is a satellite-based system prov
 
 A **software-defined radio (SDR)** is a radio system in which significant parts of signal processing are performed in software rather than fixed-function hardware.
 
+The **Third Generation Partnership Project (3GPP)** is the standards organization that defines many cellular system specifications.
+
+**Long term evolution (LTE)** is a fourth-generation cellular technology family defined by 3GPP; later releases introduce additional techniques (for example, carrier aggregation).
+
 A **link budget** is a structured accounting of gains and losses (antenna gain, cable loss, transmit power, receiver sensitivity, and environment) used to estimate whether a link will work.
 
 ---
