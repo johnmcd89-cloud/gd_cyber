@@ -65,6 +65,14 @@ An **inline USB power meter** (for USB-powered decks) is useful for observing ap
 
 However, many inline meters update slowly relative to transients. They can tell you that peak current exists, but not whether the system briefly dipped below a critical threshold.
 
+### Programmable supplies and electronic loads (for repeatable stress)
+
+If you have access to a **bench power supply** with current limiting, it can make fault reproduction much safer: you can intentionally push the deck toward peak conditions without turning wiring mistakes into high-energy events.
+
+A **programmable electronic load** is the inverse of a supply: it can draw a controlled current profile. This is useful when you want to test a power subsystem (battery pack, regulator board, cable) under controlled pulses without involving the full cyberdeck stack.
+
+Keysight application notes on electronic loads highlight why pulsed testing matters: some devices and power paths behave differently under short, high-power pulses than under steady loads. While their example focus is semiconductor characterization, the measurement logic transfers directly to cyberdeck power-path testing. [S7]
+
 ### Oscilloscopes (for transient visibility)
 
 An **oscilloscope** measures voltage over time at high sampling rates. It is the best tool for seeing:
@@ -168,6 +176,24 @@ When a connector is inserted or removed, several things can happen:
 
 Any of these can trigger resets or corrupt writes.
 
+### USB-C and negotiated power as a practical cyberdeck risk
+
+Many modern cyberdecks use USB Type-C for both convenience and current capacity. USB Type‑C is not merely a connector shape; it is part of an ecosystem where power roles, cable capabilities, and (in some cases) negotiated voltage/current profiles matter.
+
+That matters for testing because a “plug/unplug event” is not always a simple disconnection. Depending on the power source and sink behavior, reconnecting may cause a renegotiation, a brief role confusion, or a step change in voltage.
+
+The USB Implementers Forum publishes the USB Type‑C cable and connector specification and related compliance materials. Even if you do not implement the protocol yourself, the existence of these specifications is a reminder that cable/connector behavior and compliance are part of the power story, not an afterthought. [S3] [S4]
+
+If your deck uses USB Power Delivery controllers or power banks that advertise different profiles, vendor documentation (for example, Texas Instruments’ USB Type‑C and USB Power Delivery design material) can help you understand why “the same cable” may behave differently across sources. [S5]
+
+### Inrush current: why “it only reboots sometimes” is a power symptom
+
+Inrush current is the maximal instantaneous input current drawn when a device is turned on or when a supply is suddenly applied. Power converters can have inrush currents much higher than steady-state currents because input capacitances charge quickly. [S6]
+
+In practical cyberdeck terms, inrush current is one reason a deck may boot reliably on one power bank but reboot repeatedly on another: the source droops under the initial surge, and the computer resets before it can stabilize.
+
+Testing plug/unplug events while observing supply voltage near the load helps you distinguish “cable problem” from “power source cannot tolerate this transient.”
+
 ### A practical plug/unplug test sequence
 
 A conservative test sequence is:
@@ -225,9 +251,11 @@ If the deck has an explicit undervoltage warning indicator (software or hardware
 
 A robust cyberdeck power design aims for two properties.
 
-First, it should avoid unsafe operation below a threshold. This is often handled by **undervoltage lockout**, which is a circuit behavior that prevents operation when voltage is too low.
+First, it should avoid unsafe operation below a threshold. This is often handled by **undervoltage lockout**, which is a circuit behavior that turns off power to a device when voltage drops below an operational value that could cause unpredictable behavior. [S8]
 
 Second, it should preserve data. If the deck is writing data to storage, brownout behavior should be designed so that either the write completes or the system fails in a way that does not silently corrupt unrelated data.
+
+A practical mitigation is to reduce how much “critical state” is being written during unstable power. Journaling file systems, for example, record intended changes in a journal so that after a crash or power failure the system can return online more quickly with a lower likelihood of being corrupted. [S9] This is not a guarantee against data loss, but it is an example of how storage design choices interact with brownout behavior.
 
 This is one reason storage compartmentalization (Chapter 82.2) matters: if the operating system can boot independently of the data volume, recovery is simpler.
 
@@ -254,8 +282,25 @@ Document your results in a simple log: date, configuration (battery, cable, load
 
 ---
 
-## 84.1.8 Sources (initial)
+## 84.1.8 Sources
 
-This chapter will cite a mix of measurement vendor guidance, power-interface documentation, and human-factors style operational testing references. Initial anchors already used elsewhere in the book include ISO 9241-11 for usability-as-outcome framing when designing operator-visible warnings and procedures.
+[S1] ISO, *ISO 9241-11:2018* (usability as an outcome of use; context matters for procedures and warnings, including warnings and procedures in test protocols). https://www.iso.org/standard/63500.html
 
-[S1] ISO, *ISO 9241-11:2018* (usability as an outcome of use; context matters for procedures and warnings). https://www.iso.org/standard/63500.html
+[S2] Microsoft Learn, *Touch interactions* (design guidance emphasizing feedback and responsiveness across interaction phases; useful analogy for why power warnings must be glanceable). https://learn.microsoft.com/en-us/windows/apps/develop/input/touch-interactions
+
+[S3] USB Implementers Forum (USB-IF), *USB Type-C® Cable and Connector Specification Release 2.4* (specification licensing page; anchors the idea that cable/connector behavior is specified and testable). https://www.usb.org/document-library/usb-type-cr-cable-and-connector-specification-release-24
+
+[S4] USB-IF, *USB Power Delivery Compliance Test Specification* (compliance context for negotiated power behavior). https://www.usb.org/document-library/usb-power-delivery-compliance-test-specification-0
+
+[S5] Texas Instruments, *USB Type-C® and USB Power Delivery* (design and implementation reference material; use to understand negotiated-power behavior in practical systems). https://www.ti.com/lit/wp/slly021/slly021.pdf
+
+[S6] Wikipedia, *Inrush current* (definition and explanation of surge current during capacitor charging and converter startup). https://en.wikipedia.org/wiki/Inrush_current
+
+[S7] Keysight (application note), *Electronic Load Improves Power Semiconductor Measurements* (illustrates the value of pulsed testing and controlled electronic loads). https://www.keysight.com/us/en/assets/7018-06769/application-notes/5091-7636.pdf
+
+[S8] Wikipedia, *Undervoltage-lockout* (UVLO definition; why devices should shut down below safe thresholds). https://en.wikipedia.org/wiki/Undervoltage_lockout
+
+[S9] Wikipedia, *Journaling file system* (how journaling reduces the likelihood of file-system corruption after crashes/power loss). https://en.wikipedia.org/wiki/Journaling_file_system
+
+[S10] Wikipedia, *Brownout (electricity)* (general definition of brownouts; useful for terminology alignment). https://en.wikipedia.org/wiki/Brownout_(electricity)
+
